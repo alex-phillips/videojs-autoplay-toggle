@@ -143,7 +143,7 @@
     var autoplayToggleButton = function (activate) {
 
       // set cookie once
-      activate ? storage.removeItem(key) : storage.setItem(key, 'no');
+      !activate ? storage.setItem(key, 0) : storage.setItem(key, 1);
 
       // get all videos and toggle all their autoplays
       var videos = document.querySelectorAll('.video-js');
@@ -169,15 +169,33 @@
       }
     };
 
-    var turnOn = !storage.getItem(key);
+    var turnOn;
+    var val = storage.getItem(key);
+    if(val === null)
+    {
+      turnOn = settings.autoplay;
+    }
+    else if(val == false)
+    {
+      turnOn = false;
+    }
+    else
+    {
+      turnOn = true;
+    }
+
     // change player behavior based on toggle
-    if (player.autoplay() && !turnOn) {
-      // this could be autoplaying, make sure to stop it and ensure player's autoplay is false
-      player.autoplay(false);
-      player.pause();
-    } else if (player.autoplay() && turnOn) {
-      // we want this to autoplay
-      player.play();
+    if (player.autoplay()) {
+      if (!turnOn) {
+        // this could be autoplaying, make sure to stop it and ensure player's autoplay is false
+        player.autoplay(false);
+        player.pause();
+      }
+    } else {
+      if (turnOn) {
+        // we want this to autoplay
+        player.play();
+      }
     }
 
     // initialize autoplay toggle
@@ -186,7 +204,7 @@
     // set up toggle click
     autoplayBtn.onclick = function () {
       // check if key in storage and do the opposite of that to toggle
-      var toggle = !!storage.getItem(key);
+      var toggle = storage.getItem(key) == false ? true: false;
       autoplayToggleButton(toggle);
     };
 
@@ -196,7 +214,7 @@
   };
 
   // set this thing up as a vjs plugin
-  videojs.plugin('autoplayToggle', autoplayToggle);
+  videojs.registerPlugin('autoplayToggle', autoplayToggle);
 
   // alternative function for retrieving autoplay value from storage for situations where other plugins
   //  are interfering with this plugin
